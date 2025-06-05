@@ -1,0 +1,42 @@
+*.home.{$DOMAIN} {
+	import private_ranges
+	import geofilter
+
+	crowdsec
+
+	import logging ha.home.{$DOMAIN}
+	@ha host ha.home.{$DOMAIN}
+	handle @ha {
+		handle @lan_or_geo {
+			reverse_proxy 192.168.0.150:8123
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging immich.home.{$DOMAIN}
+	@immich host immich.home.{$DOMAIN}
+	handle @immich {
+		handle @lan_only {
+			reverse_proxy 192.168.0.250:8090
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging nvr.home.{$DOMAIN}
+	@nvr host nvr.home.{$DOMAIN}
+	handle @nvr {
+		handle @lan_only {
+			reverse_proxy https://192.168.0.150:8971 {
+				transport http {
+					tls_insecure_skip_verify
+				}
+			}
+		}
+		respond "Private Acccess Only" 403
+	}
+
+	handle {
+		redir https://www.google.com
+	}
+
+}

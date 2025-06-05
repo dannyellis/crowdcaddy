@@ -1,0 +1,70 @@
+{
+	acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	dynamic_dns {
+		provider cloudflare {env.CLOUDFLARE_API_TOKEN}
+		domains {
+			{$DOMAIN}
+		}
+		dynamic_domains
+		versions ipv4
+	}
+
+	order crowdsec first
+	crowdsec {
+		api_url http://crowdsec:8080
+		api_key {env.CROWDSEC_API_KEY}
+	}
+
+	metrics
+
+	admin :2019
+}
+
+(logging) {
+	log {
+		hostnames {args[0]}
+		output file /var/log/caddy/{args[0]}.access.log
+		format json
+	}
+}
+
+(private_ranges) {
+	@lan_only {
+		not {
+			not client_ip private_ranges
+		}
+	}
+}
+
+(geofilter) {
+	@lan_or_geo {
+		not {
+			not client_ip private_ranges
+			not {
+				maxmind_geolocation {
+					db_path "/etc/caddy/GeoLite2-Country.mmdb"
+					allow_countries CA US
+				}
+			}
+		}
+	}
+}
+
+actual.{$DOMAIN} {
+	import private_ranges
+	import logging actual
+
+	crowdsec
+	handle @lan_only {
+		reverse_proxy "https://172.16.2.103:5006" {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+	}
+	respond "Private Access Only" 403
+}
+
+import /etc/caddy/lab/Caddyfile
+import /etc/caddy/home/Caddyfile
+import /etc/caddy/media/Caddyfile

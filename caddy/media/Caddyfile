@@ -1,0 +1,83 @@
+*.media.{$DOMAIN} {
+	import private_ranges
+	import geofilter
+
+	crowdsec
+
+	import logging jelly.media.{$DOMAIN}
+	@jelly host jelly.media.{$DOMAIN}
+	handle @jelly {
+		handle @lan_or_geo {
+			reverse_proxy 172.16.2.7:8096
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging request.media.{$DOMAIN}
+	@request host request.media.{$DOMAIN}
+	handle @request {
+		handle @lan_or_geo {
+			reverse_proxy 172.16.1.207:5055
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging radarr.media.{$DOMAIN}
+	@radarr host radarr.media.{$DOMAIN}
+	handle @radarr {
+		handle @lan_only {
+			reverse_proxy 172.16.1.207:7878
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging sonarr.media.{$DOMAIN}
+	@sonarr host sonarr.media.{$DOMAIN}
+	handle @sonarr {
+		handle @lan_only {
+			reverse_proxy 172.16.1.207:8989
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging prowlarr.media.{$DOMAIN}
+	@prowlarr host prowlarr.media.{$DOMAIN}
+	handle @prowlarr {
+		handle @lan_only {
+			reverse_proxy 172.16.1.207:9696
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging bazarr.media.{$DOMAIN}
+	@bazarr host bazarr.media.{$DOMAIN}
+	handle @bazarr {
+		handle @lan_only {
+			reverse_proxy 172.16.1.207:6767
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging qbit-movies.media.{$DOMAIN}
+	@qbit-movies host qbit-movies.media.{$DOMAIN}
+	handle @qbit-movies {
+		handle @lan_only {
+			reverse_proxy 172.16.1.207:8080
+		}
+		respond "Private Access Only" 403
+	}
+
+	import logging qbit-tv.media.{$DOMAIN}
+	@qbit-tv host qbit-tv.media.{$DOMAIN}
+	handle @qbit-tv {
+		handle @lan_only {
+			reverse_proxy 172.16.1.207:8080
+		}
+		respond "Private Access Only" 403
+	}
+
+	handle {
+		redir https://www.google.com
+	}
+}
+

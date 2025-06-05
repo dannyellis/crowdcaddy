@@ -1,0 +1,16 @@
+*.lab.{$DOMAIN} {
+	import private_ranges
+
+	import logging grafana.lab.{$DOMAIN}
+	@grafana host grafana.lab.{$DOMAIN}
+	handle @grafana {
+		handle @lan_only {
+			reverse_proxy 192.168.21.188:3000
+		}
+		respond "Private Access Only" 403
+	}
+
+	handle {
+		redir https://www.google.com
+	}
+}
